@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BloodConnect - Premium App</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@400;500;600;700&family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #e63946;
+            --primary-hover: #d62828;
+            --bg-light: #f4f7f6;
+            --text-dark: #2b2d42;
+            --text-muted: #8d99ae;
+            --white: #ffffff;
+            --shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        body {
+            font-family: 'Hind Siliguri', 'Poppins', sans-serif;
+            background-color: #e5e5e5;
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+        }
+        .app-container {
+            max-width: 480px;
+            margin: 0 auto;
+            background: var(--bg-light);
+            min-height: 100vh;
+            position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Splash / Auth Screen */
+        #authScreen {
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 30px; background: var(--white); z-index: 100;
+        }
+        .auth-logo { font-size: 60px; color: var(--primary); margin-bottom: 10px; }
+        .auth-title { font-size: 24px; font-weight: 700; }
+        .auth-subtitle { font-size: 14px; color: var(--text-muted); margin-bottom: 30px; text-align: center; }
+
+        /* Header */
+        .header {
+            background: var(--primary); color: var(--white); padding: 20px;
+            text-align: center; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+            box-shadow: 0 4px 15px rgba(230, 57, 70, 0.3); position: sticky; top: 0; z-index: 10;
+        }
+        .header h1 { margin: 0; font-size: 22px; font-weight: 700; }
+
+        /* Form */
+        .form-card { width: 100%; box-sizing: border-box; }
+        .input-group { position: relative; margin-bottom: 15px; width: 100%; }
+        .input-group i { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+        .input-group input, .input-group select {
+            width: 100%; padding: 14px 14px 14px 45px; border: 1.5px solid #e2e8f0;
+            border-radius: 12px; font-family: inherit; font-size: 15px; box-sizing: border-box;
+        }
+        .submit-btn {
+            width: 100%; background: var(--primary); color: var(--white); border: none;
+            padding: 15px; font-size: 16px; font-weight: 700; border-radius: 12px; cursor: pointer;
+        }
+
+        /* Content Sections */
+        .content-area { padding: 20px; padding-bottom: 80px; flex-grow: 1; }
+        .section { display: none; }
+        .section.active { display: block; animation: fadeIn 0.4s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Cards */
+        .user-card {
+            background: var(--white); border-radius: 16px; padding: 15px;
+            margin-bottom: 15px; display: flex; align-items: center; box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .blood-avatar {
+            width: 50px; height: 50px; background: rgba(230, 57, 70, 0.1); color: var(--primary);
+            border-radius: 14px; display: flex; justify-content: center; align-items: center;
+            font-size: 16px; font-weight: 700; margin-right: 15px; flex-shrink: 0;
+        }
+        .card-details { flex-grow: 1; }
+        .card-details h3 { margin: 0 0 3px; font-size: 16px; }
+        .card-details p { margin: 2px 0; font-size: 13px; color: var(--text-muted); }
+        .call-btn {
+            width: 40px; height: 40px; background: #10b981; color: white;
+            border-radius: 50%; display: flex; justify-content: center; align-items: center;
+            text-decoration: none; font-size: 16px; flex-shrink: 0;
+        }
+
+        /* Bottom Nav */
+        .bottom-nav {
+            position: fixed; bottom: 0; width: 100%; max-width: 480px; background: var(--white);
+            display: flex; justify-content: space-around; padding: 10px 0;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.05); border-top-left-radius: 20px; border-top-right-radius: 20px; z-index: 50;
+        }
+        .nav-item { text-align: center; color: var(--text-muted); font-size: 12px; cursor: pointer; flex: 1; }
+        .nav-item i { font-size: 20px; display: block; margin-bottom: 4px; }
+        .nav-item.active { color: var(--primary); }
+
+        /* Profile & Others */
+        .profile-card { text-align: center; padding: 20px; background: var(--white); border-radius: 16px; box-shadow: var(--shadow); }
+        .logout-btn { background: #ef4444; margin-top: 20px; }
+        #toast { visibility: hidden; min-width: 250px; background-color: #333; color: #fff; text-align: center; border-radius: 10px; padding: 16px; position: fixed; z-index: 1000; left: 50%; bottom: 80px; transform: translateX(-50%); font-size: 15px; }
+        #toast.show { visibility: visible; }
+        .empty-state { text-align: center; color: var(--text-muted); padding: 40px 0; }
+        .empty-state i { font-size: 40px; margin-bottom: 10px; opacity: 0.5; }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <!-- Auth Screen -->
+    <div id="authScreen">
+        <i class="fa-solid fa-droplet auth-logo"></i>
+        <div class="auth-title">BloodConnect</div>
+        <div class="auth-subtitle">অ্যাপে প্রবেশ করতে আপনার তথ্য দিন</div>
+        
+        <!-- Added onsubmit="event.preventDefault();" to stop page reload -->
+        <form id="loginForm" class="form-card" onsubmit="event.preventDefault(); submitLogin();">
+            <div class="input-group">
+                <i class="fa-regular fa-user"></i>
+                <input type="text" id="regName" placeholder="আপনার সম্পূর্ণ নাম" required>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-droplet"></i>
+                <select id="regBloodGroup" required>
+                    <option value="" disabled selected>রক্তের গ্রুপ নির্বাচন করুন</option>
+                    <option value="A+">A+</option><option value="A-">A-</option>
+                    <option value="B+">B+</option><option value="B-">B-</option>
+                    <option value="O+">O+</option><option value="O-">O-</option>
+                    <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                </select>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-phone"></i>
+                <input type="tel" id="regPhone" placeholder="মোবাইল নম্বর" required>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-location-dot"></i>
+                <input type="text" id="regLocation" placeholder="আপনার জেলা / ঠিকানা" required>
+            </div>
+            <button type="submit" class="submit-btn" id="loginBtn">
+                প্রবেশ করুন <i class="fa-solid fa-arrow-right"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Main App -->
+    <div id="mainApp" style="display: none; height: 100%; flex-direction: column;">
+        <div class="header">
+            <h1><i class="fa-solid fa-droplet"></i> BloodConnect</h1>
+        </div>
+
+        <div class="content-area">
+            <!-- Requests -->
+            <div id="requestsSection" class="section active">
+                <h3 style="margin-top:0;">জরুরি রক্তের আবেদন</h3>
+                <div id="requestList"><div class="empty-state"><p>ডেটা লোড হচ্ছে...</p></div></div>
+            </div>
+
+            <!-- Donors -->
+            <div id="donorsSection" class="section">
+                <div class="input-group">
+                    <i class="fa-solid fa-search"></i>
+                    <select id="filterBlood" onchange="filterDonors()">
+                        <option value="All">সব গ্রুপের রক্তদাতা</option>
+                        <option value="A+">A+</option><option value="A-">A-</option>
+                        <option value="B+">B+</option><option value="B-">B-</option>
+                        <option value="O+">O+</option><option value="O-">O-</option>
+                        <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                    </select>
+                </div>
+                <div id="donorList"><div class="empty-state"><p>ডেটা লোড হচ্ছে...</p></div></div>
+            </div>
+
+            <!-- Add Request -->
+            <div id="addSection" class="section">
+                <div class="form-card" style="padding:20px; box-shadow:var(--shadow); background:#fff; border-radius:16px;">
+                    <h3 style="text-align:center;">রক্তের জন্য আবেদন করুন</h3>
+                    <!-- Added onsubmit protection -->
+                    <form id="requestForm" onsubmit="event.preventDefault(); submitRequest();">
+                        <div class="input-group">
+                            <select id="reqBloodGroup" required>
+                                <option value="" disabled selected>রোগীর জন্য রক্তের গ্রুপ</option>
+                                <option value="A+">A+</option><option value="A-">A-</option>
+                                <option value="B+">B+</option><option value="B-">B-</option>
+                                <option value="O+">O+</option><option value="O-">O-</option>
+                                <option value="AB+">AB+</option><option value="AB-">AB-</option>
+                            </select>
+                        </div>
+                        <div class="input-group">
+                            <input type="text" id="reqLocation" placeholder="হাসপাতালের নাম ও ঠিকানা" required>
+                        </div>
+                        <button type="submit" class="submit-btn" id="postReqBtn">আবেদন পোস্ট করুন</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Profile -->
+            <div id="profileSection" class="section">
+                <div class="profile-card">
+                    <h2 id="profName">নাম</h2>
+                    <p id="profPhone">01XXX</p>
+                    <p>রক্তের গ্রুপ: <span id="profBlood">O+</span></p>
+                    <button class="submit-btn logout-btn" onclick="logoutApp()">লগ-আউট করুন</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item active" onclick="switchTab('requestsSection', this)"><i class="fa-solid fa-house"></i>আবেদন</div>
+            <div class="nav-item" onclick="switchTab('donorsSection', this)"><i class="fa-solid fa-users"></i>রক্তদাতা</div>
+            <div class="nav-item" onclick="switchTab('addSection', this)"><i class="fa-solid fa-plus"></i>নতুন আবেদন</div>
+            <div class="nav-item" onclick="switchTab('profileSection', this)"><i class="fa-solid fa-user"></i>প্রোফাইল</div>
+        </div>
+    </div>
+</div>
+
+<div id="toast">মেসেজ</div>
+
+<!-- Changed Firebase SDK to standard HTML scripts for better mobile editor compatibility -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    // Initialize Firebase
+    const firebaseConfig = {
+        apiKey: "AIzaSyC5TPSccSE3vFMgnUrPX6n5XUUxWxo1Z0g",
+        authDomain: "blood-donation-2571c.firebaseapp.com",
+        databaseURL: "https://blood-donation-2571c-default-rtdb.firebaseio.com",
+        projectId: "blood-donation-2571c",
+        storageBucket: "blood-donation-2571c.firebasestorage.app",
+        messagingSenderId: "460822879229",
+        appId: "1:460822879229:web:cacdce256c4b1b58c95794"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // Check if user is already logged in
+    const currentUserInfo = JSON.parse(localStorage.getItem('bloodUser'));
+    if (currentUserInfo) {
+        document.getElementById('authScreen').style.display = 'none';
+        document.getElementById('mainApp').style.display = 'flex';
+        loadUserProfile(currentUserInfo);
+        fetchData();
+    }
+
+    // Login Function
+    function submitLogin() {
+        const btn = document.getElementById('loginBtn');
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+        
+        const userData = {
+            name: document.getElementById('regName').value,
+            bloodGroup: document.getElementById('regBloodGroup').value,
+            phone: document.getElementById('regPhone').value,
+            location: document.getElementById('regLocation').value,
+            joined: new Date().toLocaleDateString('bn-BD')
+        };
+
+        const safePhone = userData.phone.replace(/[^0-9]/g, '');
+        
+        db.ref('users/' + safePhone).set(userData)
+        .then(() => {
+            localStorage.setItem('bloodUser', JSON.stringify(userData));
+            showToast('✅ প্রবেশ সফল হয়েছে।');
+            setTimeout(() => { location.reload(); }, 1000);
+        })
+        .catch((error) => {
+            showToast('❌ ইন্টারনেট সংযোগ চেক করুন!');
+            btn.innerHTML = 'প্রবেশ করুন <i class="fa-solid fa-arrow-right"></i>';
+        });
+    }
+
+    // Request Blood Function
+    function submitRequest() {
+        const btn = document.getElementById('postReqBtn');
+        btn.innerHTML = 'অপেক্ষা করুন...';
+        
+        const user = JSON.parse(localStorage.getItem('bloodUser'));
+        const requestData = {
+            requesterName: user.name,
+            requesterPhone: user.phone,
+            bloodGroup: document.getElementById('reqBloodGroup').value,
+            location: document.getElementById('reqLocation').value,
+            timestamp: new Date().toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', day: 'numeric', month: 'short' })
+        };
+
+        db.ref('blood_requests').push(requestData)
+        .then(() => {
+            showToast('✅ আপনার আবেদন পোস্ট করা হয়েছে!');
+            document.getElementById('requestForm').reset();
+            document.querySelector('.nav-item').click(); 
+            btn.innerHTML = 'আবেদন পোস্ট করুন';
+        })
+        .catch(() => {
+            showToast('❌ সমস্যা হয়েছে!');
+            btn.innerHTML = 'আবেদন পোস্ট করুন';
+        });
+    }
+
+    // Fetch Data from Firebase
+    function fetchData() {
+        // Fetch Donors
+        db.ref('users').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const donorList = document.getElementById('donorList');
+            donorList.innerHTML = '';
+            if(data) {
+                for (let phone in data) {
+                    const user = data[phone];
+                    donorList.innerHTML += `
+                        <div class="user-card donor-card" data-blood="${user.bloodGroup}">
+                            <div class="blood-avatar">${user.bloodGroup}</div>
+                            <div class="card-details">
+                                <h3>${user.name}</h3><p>${user.location}</p>
+                            </div>
+                            <a href="tel:${user.phone}" class="call-btn"><i class="fa-solid fa-phone"></i></a>
+                        </div>`;
+                }
+            } else {
+                donorList.innerHTML = '<div class="empty-state"><p>কোনো রক্তদাতা নেই</p></div>';
+            }
+        });
+
+        // Fetch Requests
+        db.ref('blood_requests').on('value', (snapshot) => {
+            const data = snapshot.val();
+            const requestList = document.getElementById('requestList');
+            requestList.innerHTML = '';
+            if(data) {
+                for (let id in data) {
+                    const req = data[id];
+                    requestList.innerHTML = `
+                        <div class="user-card">
+                            <div class="blood-avatar" style="background:#fff0f0; border-color:red;">${req.bloodGroup}</div>
+                            <div class="card-details">
+                                <h3>${req.requesterName}</h3>
+                                <p style="color:red;">${req.location}</p>
+                            </div>
+                            <a href="tel:${req.requesterPhone}" class="call-btn"><i class="fa-solid fa-phone"></i></a>
+                        </div>` + requestList.innerHTML;
+                }
+            } else {
+                requestList.innerHTML = '<div class="empty-state"><p>কোনো রক্তের আবেদন নেই</p></div>';
+            }
+        });
+    }
+
+    // Utilities
+    function loadUserProfile(user) {
+        document.getElementById('profName').innerText = user.name;
+        document.getElementById('profPhone').innerText = user.phone;
+        document.getElementById('profBlood').innerText = user.bloodGroup;
+    }
+
+    function switchTab(sectionId, element) {
+        document.querySelectorAll('.section').forEach(sec => sec.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+        document.getElementById(sectionId).classList.add('active');
+        element.classList.add('active');
+    }
+
+    function filterDonors() {
+        const filterValue = document.getElementById('filterBlood').value;
+        document.querySelectorAll('.donor-card').forEach(card => {
+            card.style.display = (filterValue === 'All' || card.getAttribute('data-blood') === filterValue) ? 'flex' : 'none';
+        });
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.innerText = msg; t.className = "show";
+        setTimeout(() => { t.className = t.className.replace("show", ""); }, 3000);
+    }
+
+    function logoutApp() {
+        if(confirm('লগ-আউট করতে চান?')) {
+            localStorage.removeItem('bloodUser');
+            location.reload();
+        }
+    }
+</script>
+
+</body>
+</html>
